@@ -21,18 +21,18 @@ COMMIT_HASH - (Optional) The Git commit hash to return in the heathcheck route.
 ## Slack Integrations
 ### Slash Commands
 
-Daily Updates
+#### Daily Updates
 
-#### Command
+##### Command
 
 ```
 /updates {status}
 ```
 
-#### Usage
+##### Usage
 You can post your daily updates with this command. Status items should be newline separated and each line should start with a `t:` for "today" (as in, "Today I plan on working on this..."), `y:` for "yesterday" (as in, "Yesterday I did this..."), and `b:` for "blockers" (as in, "Right now I'm blocked by this...").
 
-#### Example
+##### Example
 
 ```
 /updates
