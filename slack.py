@@ -84,12 +84,14 @@ class Updates(object):
         """
         if req.content_length in (None, 0):
             # Nothing to do
-            return
+            raise falcon.HTTPBadRequest('Empty request body',
+                                        'Expected request payload.')
 
-        body = req.stream.read()
+        raw_body = req.stream.read()
+        body = raw_body.decode('utf-8')
         if not body:
             raise falcon.HTTPBadRequest('Empty request body',
-                                        'A valid JSON document is required.')
+                                        'Found empty data in request stream.')
 
         data = dict(line.split('=', 1) for line in body.splitlines())
         message = self.build_slack_message(data['user_name'], data['text'])
