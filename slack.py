@@ -70,10 +70,12 @@ class Updates(object):
         return message
 
     @staticmethod
-    def post_to_slack(webhook_url, message_json):
+    def post_to_slack(webhook_url, message_json, channel=None):
         """
         Posts a message to the Slack webhook.
         """
+        if channel:
+            message_json['channel'] = '#%s' % channel if channel[0] != '#' else channel
         resp = requests.post(webhook_url, data=json.dumps(message_json))
         logging.getLogger().info('Response:', resp.status_code, ' -', resp.text)
         return resp
@@ -82,20 +84,16 @@ class Updates(object):
         """
         Handles incoming web hooks for the "updates" Slack slash command.
         """
-        if req.content_length in (None, 0):
-            # Nothing to do
-            raise falcon.HTTPBadRequest('Empty request body',
-                                        'Expected request payload.')
+        if 'UPDATES_TOKEN' in os.environ:
+            req_token = req.get_param('token')
+            if req_token != os.environ['UPDATES_TOKEN']:
+                raise falcon.HTTPUnauthorized()
 
-        raw_body = req.stream.read()
-        body = raw_body.decode('utf-8')
-        if not body:
-            raise falcon.HTTPBadRequest('Empty request body',
-                                        'Found empty data in request stream.')
-
-        data = dict(line.split('=', 1) for line in body.splitlines())
-        message = self.build_slack_message(data['user_name'], data['text'])
-        self.post_to_slack(self.webhook_url, message)
+        user_name = req.get_param('user_name', required=True)
+        text = req.get_param('text', required=True)
+        channel_name = req.get_param('channel_name')
+        message = self.build_slack_message(user_name, text)
+        self.post_to_slack(self.webhook_url, message, channel=channel_name)
         resp.status = falcon.HTTP_200
         resp.body = ''
 
